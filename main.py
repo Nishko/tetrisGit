@@ -53,13 +53,13 @@ class ScreenState:
         for button in self.buttons:
             button.show()
         for textbox in self.textboxes:
-            button.show()
+            textbox.show()
         
     def hide(self):
         for button in self.buttons:
             button.hide() 
         for textbox in self.textboxes:
-            button.hide()
+            textbox.hide()
 
 
 pygame.init()

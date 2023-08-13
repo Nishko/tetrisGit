@@ -30,14 +30,21 @@ class ScreenState:
     def __init__(self, gui, events):
         self.my_gui = gui
         self.my_events = events
-        self.buttons = []
         self.colour = (255, 255, 255)
+        self.buttons = []
+        self.textboxes = []
 
-    def newButton(self, x_pos, y_pos, x_dim, y_dim, button_text, varname, value):
-        new_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((x_pos, y_pos), (x_dim, y_dim)), text=button_text, manager=self.my_gui)
+    def newButton(self, x_pos, y_pos, x_dim, y_dim, text, varname, value):
+        new_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((x_pos, y_pos), (x_dim, y_dim)), 
+            html_text=text, manager=self.my_gui)
         self.buttons.append(new_button)
         self.my_events.newButtonEvent(new_button, varname, value)
 
+    def newTextBox(self, x_pos, y_pos, x_dim, y_dim, text):
+        new_text = pygame_gui.elements.UITextBox(relative_rect=pygame.Rect((x_pos, y_pos), (x_dim, y_dim)), 
+            html_text=text, manager=self.my_gui)
+        self.textboxes.append(new_text)
+                                                   
     def setColour(self, red, green, blue):
         self.colour = (red, green, blue)
 
@@ -45,10 +52,14 @@ class ScreenState:
         display.fill(self.colour)
         for button in self.buttons:
             button.show()
+        for textbox in self.textboxes:
+            button.show()
         
     def hide(self):
         for button in self.buttons:
             button.hide() 
+        for textbox in self.textboxes:
+            button.hide()
 
 
 pygame.init()

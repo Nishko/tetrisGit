@@ -36,13 +36,15 @@ class ScreenState:
 
     def newButton(self, x_pos, y_pos, x_dim, y_dim, text, varname, value):
         new_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((x_pos, y_pos), (x_dim, y_dim)), 
-            html_text=text, manager=self.my_gui)
+            text=text, manager=self.my_gui)
         self.buttons.append(new_button)
         self.my_events.newButtonEvent(new_button, varname, value)
 
-    def newTextBox(self, x_pos, y_pos, x_dim, y_dim, text):
+    def newText(self, x_pos, y_pos, x_dim, y_dim, text, font_size=6, colour=(0,0,0)):
         new_text = pygame_gui.elements.UITextBox(relative_rect=pygame.Rect((x_pos, y_pos), (x_dim, y_dim)), 
-            html_text=text, manager=self.my_gui)
+            html_text=f"<font size={font_size}>{text}</font>", manager=self.my_gui)
+        new_text.dark_bg = pygame.Color(255, 255, 255)
+        new_text.text_color = pygame.Color(255, 255, 255)
         self.textboxes.append(new_text)
                                                    
     def setColour(self, red, green, blue):
@@ -75,6 +77,7 @@ screens = []
 main_menu = ScreenState(gui_manager, event_handler)
 screens.append(main_menu)
 main_menu.newButton(300, 250, 200, 50, "Settings", "menustate", 1)
+main_menu.newText(200, 50, 400, 100, "Tetris!\nThis is Tetris!")
 
 # Settings Menu
 settings = ScreenState(gui_manager, event_handler)

@@ -67,12 +67,19 @@ screens = []
 main_menu = ScreenState(gui_manager, event_handler)
 screens.append(main_menu)
 main_menu.newButton(300, 250, 200, 50, "Settings", "menustate", 1)
-main_menu.newText(200, 50, 400, 100, "Tetris!\nThis is Tetris!")
+main_menu.newText(0, 0, 800, 100, "Tetris", 7)
+with open("creators.txt", "r") as file:
+    creators = file.read()
+main_menu.newText(0, 450, 250, 150, creators, 4)
 
 # Settings Menu
 settings = ScreenState(gui_manager, event_handler)
 screens.append(settings)
 settings.newButton(300, 350, 200, 50, "Main Menu", "menustate", 0)
+
+# Highscore Menu
+
+# Gameplay
 
 # Default Values
 event_handler.defaultValue("menustate", 0)

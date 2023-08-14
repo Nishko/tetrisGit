@@ -27,41 +27,31 @@ class EventHandler:
 
 
 class ScreenState:
-    def __init__(self, gui, events):
+    def __init__(self, gui, events, colour=(0, 0, 0)):
         self.my_gui = gui
         self.my_events = events
-        self.colour = (255, 255, 255)
-        self.buttons = []
-        self.textboxes = []
+        self.colour = colour
+        self.objects = []
 
     def newButton(self, x_pos, y_pos, x_dim, y_dim, text, varname, value):
         new_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((x_pos, y_pos), (x_dim, y_dim)), 
             text=text, manager=self.my_gui)
-        self.buttons.append(new_button)
+        self.objects.append(new_button)
         self.my_events.newButtonEvent(new_button, varname, value)
 
-    def newText(self, x_pos, y_pos, x_dim, y_dim, text, font_size=6, colour=(0,0,0)):
+    def newText(self, x_pos, y_pos, x_dim, y_dim, text, font_size=6):
         new_text = pygame_gui.elements.UITextBox(relative_rect=pygame.Rect((x_pos, y_pos), (x_dim, y_dim)), 
             html_text=f"<font size={font_size}>{text}</font>", manager=self.my_gui)
-        new_text.dark_bg = pygame.Color(255, 255, 255)
-        new_text.text_color = pygame.Color(255, 255, 255)
-        self.textboxes.append(new_text)
-                                                   
-    def setColour(self, red, green, blue):
-        self.colour = (red, green, blue)
+        self.objects.append(new_text)
 
     def show(self):
         display.fill(self.colour)
-        for button in self.buttons:
-            button.show()
-        for textbox in self.textboxes:
-            textbox.show()
+        for object in self.objects:
+            object.show() 
         
     def hide(self):
-        for button in self.buttons:
-            button.hide() 
-        for textbox in self.textboxes:
-            textbox.hide()
+        for object in self.objects:
+            object.hide() 
 
 
 pygame.init()
@@ -69,7 +59,7 @@ pygame.init()
 display = pygame.display.set_mode((800, 600))
 pygame.display.set_caption("The Spectacularly Silly Shape Shuffling Showdown")
 # gui manager and event handler
-gui_manager = pygame_gui.UIManager((800, 600))
+gui_manager = pygame_gui.UIManager((800, 600), 'theme.json')
 event_handler = EventHandler()
 screens = []
 
@@ -82,7 +72,7 @@ main_menu.newText(200, 50, 400, 100, "Tetris!\nThis is Tetris!")
 # Settings Menu
 settings = ScreenState(gui_manager, event_handler)
 screens.append(settings)
-settings.newButton(300, 250, 200, 50, "Main Menu", "menustate", 0)
+settings.newButton(300, 350, 200, 50, "Main Menu", "menustate", 0)
 
 # Default Values
 event_handler.defaultValue("menustate", 0)

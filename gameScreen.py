@@ -35,7 +35,7 @@ Sizes = [
      [(0,1),(0,2),(-1,1)],[(0,1),(0,2),(1,1)]]  # corner shape
 ]
 RowValues = [0,100,300,600,1000]
-width = 700
+width = 800
 height = 600
 pygame.init()
 
@@ -184,6 +184,26 @@ class GameClass:
                 self.HeldBlock = self.BlockInd
                 self.BlockInd = temp
 
+def pauseGame(screen):
+    pauseScreenActive = True
+    while pauseScreenActive:  # a temp end screen to be replaced by Matt
+        screen.fill((50, 90, 10))
+        font = pygame.font.SysFont("Calibri", 70, bold=True)
+        label1 = font.render("Keep Playing?", True, '#FFFFFF')
+        label1Size = label1.get_size()
+
+        screen.blit(label1, ((width - label1Size[0]) / 2, (height - label1Size[1]) / 2))
+        pygame.display.update()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pauseScreenActive = False
+                return True
+            if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_p:
+                        pauseScreenActive = False
+                        return False
+
 def startGame(newWidth, newHeight, isExtension, newLevel, isAI, screen):  # called at the start of the game
     clock = pygame.time.Clock()
     playing = True
@@ -244,6 +264,9 @@ def startGame(newWidth, newHeight, isExtension, newLevel, isAI, screen):  # call
                         right = True
                     if event.key == pygame.K_SPACE:
                         game.HoldBlock()
+                    if event.key == pygame.K_ESCAPE:
+                        if pauseGame(screen) == True:
+                            return game.Score
                 elif event.type == pygame.KEYUP:
                     if event.key == pygame.K_DOWN:
                         DownFast = False
@@ -366,7 +389,6 @@ def startGame(newWidth, newHeight, isExtension, newLevel, isAI, screen):  # call
 
         clock.tick(fps)
         pygame.display.flip()
-
 
 def fitnessRating(game, newShape, i):
     highestPos = 0

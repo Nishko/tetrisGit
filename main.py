@@ -1,5 +1,6 @@
 import pygame
 import pygame_gui
+from gameScreen import startGame
 
 class EventHandler:
     def __init__(self):
@@ -91,6 +92,7 @@ screens = []
 main_menu = ScreenState(gui_manager, event_handler)
 screens.append(main_menu)
 main_menu.newButton(300, 250, 200, 50, "Configure", "menustate", 1)
+main_menu.newButton(300, 190, 200, 50, "Play Game", "gamestart", 1)
 main_menu.newButton(300, 500, 200, 50, "Quit", "quitgame", 1)
 main_menu.newText(0, 0, 800, 100, "Tetris", 7)
 with open("creators.txt", "r") as file:
@@ -110,11 +112,18 @@ settings.newText(0, 325, 200, 75, "Extended Shapes", 4)
 settings.newText(0, 400, 200, 75, "AI Mode", 4)
 
 # Highscore Menu
+highscores = ScreenState(gui_manager, event_handler)
+screens.append(highscores)
+highscores.newButton(300, 500, 200, 50, "Return to Main Menu", "menustate", 0)
 
 # Gameplay
+endgame = ScreenState(gui_manager, event_handler)
+screens.append(endgame)
+endgame.newButton(300, 500, 200, 50, "Return to Main Menu", "menustate", 0)
 
 # Default Values
 event_handler.defaultValue("menustate", 0)
+event_handler.defaultValue("gamestart", 0)
 event_handler.defaultValue("quitgame", 0)
 
 # Run game
@@ -132,6 +141,8 @@ while is_running:
     if event_handler.getValue("quitgame") == 1:
         is_running = False
     current_screen = event_handler.getValue("menustate")
+    if event_handler.getValue("gamestart") == 1:
+        current_screen = len(screens)
     for i in range(len(screens)):
         if current_screen == i:
             screens[i].show()
@@ -139,5 +150,9 @@ while is_running:
             screens[i].hide()
     gui_manager.draw_ui(display)
     pygame.display.flip()
+    if event_handler.getValue("gamestart") == 1:
+        event_handler.defaultValue("gamestart", 0)
+        score = startGame(15, 20, True, 10, False, display)
+        event_handler.defaultValue("menustate", 3)
 
 pygame.quit()

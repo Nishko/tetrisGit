@@ -184,27 +184,7 @@ class GameClass:
                 self.HeldBlock = self.BlockInd
                 self.BlockInd = temp
 
-
-def endGame(score):  # called at the end of the game
-    endScreenActive = True
-
-    while endScreenActive:  # a temp end screen to be replaced by Matt
-        screen.fill((50, 90, 10))
-        font = pygame.font.SysFont("Calibri", 70, bold=True)
-        label1 = font.render("Game Over.", True, '#FFFFFF')
-        label2 = font.render(str(score), True, "#FFFFFF")
-        label1Size = label1.get_size()
-        label2Size = label2.get_size()
-
-        screen.blit(label1, ((width - label1Size[0]) / 2, (height - label1Size[1]) / 2))
-        screen.blit(label2, ((width - label2Size[0]) / 2, (height - label2Size[1]) / 2 + label1Size[1]))
-        pygame.display.update()
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                endScreenActive = False
-
-
-def startGame(newWidth, newHeight, isExtension, newLevel, isAI):  # called at the start of the game
+def startGame(newWidth, newHeight, isExtension, newLevel, isAI, screen):  # called at the start of the game
     clock = pygame.time.Clock()
     playing = True
     fps = 25
@@ -235,7 +215,7 @@ def startGame(newWidth, newHeight, isExtension, newLevel, isAI):  # called at th
             returnVal = game.MoveDown()
             if not returnVal[0]:  # game is over
                 playing = False
-                endGame(game.Score)
+                return game.Score
             if returnVal[1] == 1:
                 targetPos = -1
             counter = 0
@@ -414,23 +394,3 @@ def fitnessRating(game, newShape, i):
                     newFitness -= 5
     newFitness += lowestBlock * 2.5
     return newFitness
-
-
-screen = pygame.display.set_mode((width,height))  # create the screen
-pygame.display.set_caption("Tetris")  # name screen window
-running = True
-
-while running:  # This is a temp intro screen and will be replaced by Matt
-    screen.fill((16, 57, 34))
-    font = pygame.font.SysFont("Calibri", 70, bold=True)
-    label = font.render("Press any key to begin!", True, '#FFFFFF')
-    labelSize = label.get_size()
-
-    screen.blit(label, ((width-labelSize[0])/2, (height-labelSize[1])/2))
-    pygame.display.update()
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-        if event.type == pygame.KEYDOWN:
-            startGame(15, 20, True, 10, True)  # (board width, board height, run extension, level)
-pygame.quit()

@@ -8,23 +8,29 @@ class EventHandler:
         self.sliders = []
         self.vars = {}
 
-    def defaultValue(self, varname, value):
+    def setValue(self, varname, value):
         self.vars[varname] = value
+
+    def getValue(self, varname):
+        return self.vars.get(varname)
 
     def newButtonEvent(self, button, varname, value):
         self.buttons.append((button, varname, value))
         curr_value = self.vars.get(varname)
         if curr_value is None:
-            self.defaultValue(varname, value)
+            self.setValue(varname, value)
 
     def newSliderEvent(self, slider, varname, increment, link_text):
         self.sliders.append((slider, varname, increment, link_text))
-        curr_value = self.vars.get(varname)
+        curr_value = self.getValue(varname)
         if curr_value is None:
-            self.defaultValue(varname, slider.get_current_value())
+            self.setValue(varname, slider.get_current_value())
 
-    def getValue(self, varname):
-        return self.vars.get(varname)
+    def setSliders(self):
+        for slider, varname, _, text in self.sliders:
+            value = self.getValue(varname)
+            slider.set_current_value(value)
+            text.set_text(f"{value}")
     
     def runEvent(self, event):
         if event.type == pygame_gui.UI_BUTTON_PRESSED:
@@ -36,10 +42,8 @@ class EventHandler:
             for slider, varname, increment, text in self.sliders:
                 if event.ui_element == slider:
                     value = round(event.value / increment) * increment
-                    slider.set_current_value(value)
-                    text.set_text(f"{value}")
                     if varname is not None:
-                        self.vars[varname] = value
+                        self.setValue(varname, value)
 
 
 class ScreenState:
@@ -52,19 +56,23 @@ class ScreenState:
     def newButton(self, x_pos, y_pos, x_dim, y_dim, text, varname, value):
         new_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((x_pos, y_pos), (x_dim, y_dim)), 
             text=text, manager=self.my_gui)
+        new_button.visible = False
         self.objects.append(new_button)
         self.my_events.newButtonEvent(new_button, varname, value)
 
     def newText(self, x_pos, y_pos, x_dim, y_dim, text, font_size=6):
         new_text = pygame_gui.elements.UITextBox(relative_rect=pygame.Rect((x_pos, y_pos), (x_dim, y_dim)), 
             html_text=f"<font size={font_size}>{text}</font>", manager=self.my_gui)
+        new_text.visible = False
         self.objects.append(new_text)
 
     def newSlider(self, x_pos, y_pos, x_dim, y_dim, min_val, max_val, inc_val, varname):
         new_slider = pygame_gui.elements.UIHorizontalSlider(relative_rect=pygame.Rect((x_pos, y_pos), (x_dim - 50, y_dim)), 
             start_value=min_val, value_range=(float(min_val), float(max_val)), click_increment=inc_val, manager=self.my_gui)
+        new_slider.visible = False
         link_text = pygame_gui.elements.UILabel(relative_rect=pygame.Rect((x_pos + x_dim - 50, y_pos), (50, y_dim)), 
             text=f"{min_val}", manager=self.my_gui)
+        link_text.visible = False
         self.objects.append(new_slider)
         self.objects.append(link_text)
         self.my_events.newSliderEvent(new_slider, varname, inc_val, link_text)
@@ -91,8 +99,9 @@ screens = []
 # Main Menu
 main_menu = ScreenState(gui_manager, event_handler)
 screens.append(main_menu)
-main_menu.newButton(300, 250, 200, 50, "Configure", "menustate", 1)
-main_menu.newButton(300, 190, 200, 50, "Play Game", "gamestart", 1)
+main_menu.newButton(300, 200, 200, 50, "Play Game", "gamestart", 1)
+main_menu.newButton(300, 275, 200, 50, "Top Scores", "menustate", 2)
+main_menu.newButton(300, 350, 200, 50, "Configure", "menustate", 1)
 main_menu.newButton(300, 500, 200, 50, "Quit", "quitgame", 1)
 main_menu.newText(0, 0, 800, 100, "Tetris", 7)
 with open("creators.txt", "r") as file:
@@ -102,29 +111,36 @@ main_menu.newText(0, 450, 250, 150, creators, 4)
 # Settings Menu
 settings = ScreenState(gui_manager, event_handler)
 screens.append(settings)
-settings.newButton(300, 500, 200, 50, "Return to Main Menu", "menustate", 0)
 settings.newText(0, 0, 800, 100, "Configuration", 7)
+settings.newButton(300, 500, 200, 50, "Return to Main Menu", "menustate", 0)
 settings.newText(0, 100, 200, 75, "Difficulty", 4)
-settings.newSlider(200, 100, 200, 75, 1, 5, 1, "speed")
+settings.newSlider(200, 100, 450, 75, 1, 5, 1, "speed")
 settings.newText(0, 175, 200, 75, "Tower Width", 4)
+settings.newSlider(200, 175, 450, 75, 15, 5, 1, "width")
 settings.newText(0, 250, 200, 75, "Tower Height", 4)
+settings.newSlider(200, 250, 450, 75, 20, 10, 1, "height")
 settings.newText(0, 325, 200, 75, "Extended Shapes", 4)
 settings.newText(0, 400, 200, 75, "AI Mode", 4)
 
 # Highscore Menu
 highscores = ScreenState(gui_manager, event_handler)
 screens.append(highscores)
+highscores.newText(0, 0, 800, 100, "Top Scores", 7)
 highscores.newButton(300, 500, 200, 50, "Return to Main Menu", "menustate", 0)
 
 # Gameplay
 endgame = ScreenState(gui_manager, event_handler)
 screens.append(endgame)
+endgame.newText(0, 0, 800, 100, "Game Over", 7)
 endgame.newButton(300, 500, 200, 50, "Return to Main Menu", "menustate", 0)
 
 # Default Values
-event_handler.defaultValue("menustate", 0)
-event_handler.defaultValue("gamestart", 0)
-event_handler.defaultValue("quitgame", 0)
+event_handler.setValue("menustate", 0)
+event_handler.setValue("gamestart", 0)
+event_handler.setValue("quitgame", 0)
+event_handler.setValue("width", 10)
+event_handler.setValue("height", 20)
+event_handler.setValue("speed", 3)
 
 # Run game
 clock = pygame.time.Clock()
@@ -148,11 +164,12 @@ while is_running:
             screens[i].show()
         else:
             screens[i].hide()
+    event_handler.setSliders()
     gui_manager.draw_ui(display)
     pygame.display.flip()
     if event_handler.getValue("gamestart") == 1:
-        event_handler.defaultValue("gamestart", 0)
-        score = startGame(15, 20, True, 10, False, display)
-        event_handler.defaultValue("menustate", 3)
+        event_handler.setValue("gamestart", 0)
+        score = startGame(event_handler.getValue("width"), event_handler.getValue("height"), True, event_handler.getValue("speed"), False, display)
+        event_handler.setValue("menustate", 3)
 
 pygame.quit()

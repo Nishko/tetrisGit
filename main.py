@@ -169,7 +169,8 @@ while is_running:
     pygame.display.flip()
     if event_handler.getValue("gamestart") == 1:
         event_handler.setValue("gamestart", 0)
-        score = startGame(event_handler.getValue("width"), event_handler.getValue("height"), True, event_handler.getValue("speed"), False, display)
+        score = startGame(event_handler.getValue("width"), event_handler.getValue("height"), 
+                          True, event_handler.getValue("speed"), False, display, gui_manager)
         event_handler.setValue("menustate", 3)
 
 pygame.quit()

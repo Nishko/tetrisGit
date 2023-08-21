@@ -1,5 +1,6 @@
 import pygame
 import random
+import pygame_gui
 from copy import copy, deepcopy
 
 """
@@ -184,27 +185,55 @@ class GameClass:
                 self.HeldBlock = self.BlockInd
                 self.BlockInd = temp
 
-def pauseGame(screen):
+def pauseGame(screen, manager, score):
+    gui_elements = []
+    continue_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((150, 400), (200, 50)), 
+            text="Continue", manager=manager)
+    gui_elements.append(continue_button)
+    quit_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((450, 400), (200, 50)), 
+            text="Quit", manager=manager)
+    gui_elements.append(quit_button)
+    Pause_text = pygame_gui.elements.UITextBox(relative_rect=pygame.Rect((0, 100), (800, 100)), 
+            html_text=f"<font size={7}>{'Game Paused'}</font>", manager=manager)
+    gui_elements.append(Pause_text)
+    Pause_text = pygame_gui.elements.UITextBox(relative_rect=pygame.Rect((0, 200), (800, 100)), 
+            html_text=f"<font size={5}>{'Current Score: ' + str(score)}</font>", manager=manager)
+    gui_elements.append(Pause_text)
+
+    for element in gui_elements:
+        element.visible = False
+    clock = pygame.time.Clock()
+
     pauseScreenActive = True
-    while pauseScreenActive:  # a temp end screen to be replaced by Matt
-        screen.fill((50, 90, 10))
-        font = pygame.font.SysFont("Calibri", 70, bold=True)
-        label1 = font.render("Keep Playing?", True, '#FFFFFF')
-        label1Size = label1.get_size()
-
-        screen.blit(label1, ((width - label1Size[0]) / 2, (height - label1Size[1]) / 2))
-        pygame.display.update()
-
+    while pauseScreenActive:
         for event in pygame.event.get():
+            if event.type == pygame_gui.UI_BUTTON_PRESSED:
+                if event.ui_element == continue_button:
+                    for element in gui_elements:
+                        element.hide()
+                    pauseScreenActive = False
+                    return False
+                if event.ui_element == quit_button:
+                    for element in gui_elements:
+                        element.hide()
+                    pauseScreenActive = False
+                    return True
+                
             if event.type == pygame.QUIT:
+                for element in gui_elements:
+                    element.hide()
                 pauseScreenActive = False
                 return True
-            if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_p:
-                        pauseScreenActive = False
-                        return False
+            manager.process_events(event)
 
-def startGame(newWidth, newHeight, isExtension, newLevel, isAI, screen):  # called at the start of the game
+        manager.update(clock.tick(60) / 1000.0)
+        screen.fill((0, 0, 0))
+        manager.draw_ui(screen)
+        for element in gui_elements:
+            element.show()
+        pygame.display.flip()
+
+def startGame(newWidth, newHeight, isExtension, newLevel, isAI, screen, manager):  # called at the start of the game
     clock = pygame.time.Clock()
     playing = True
     fps = 25
@@ -218,13 +247,17 @@ def startGame(newWidth, newHeight, isExtension, newLevel, isAI, screen):  # call
     movementCooldown = 0
     counter = 0
 
+    # calculate game board position
+    pos[0] = (width - newWidth * BlockWidth) / 2
+    pos[1] = (height - newHeight * BlockWidth) / 4 * 3
+
     # Ai values
     AIPlaying = isAI
     targetPos = -1
     targetRot = 0
 
     while playing:
-        screen.fill("#FFFFFF")  # set screen background
+        screen.fill((0, 0, 0))  # set screen background
 
         # increase the tick timers
         counter += 1
@@ -265,7 +298,7 @@ def startGame(newWidth, newHeight, isExtension, newLevel, isAI, screen):  # call
                     if event.key == pygame.K_SPACE:
                         game.HoldBlock()
                     if event.key == pygame.K_ESCAPE:
-                        if pauseGame(screen) == True:
+                        if pauseGame(screen, manager, game.Score) == True:
                             return game.Score
                 elif event.type == pygame.KEYUP:
                     if event.key == pygame.K_DOWN:
@@ -334,7 +367,7 @@ def startGame(newWidth, newHeight, isExtension, newLevel, isAI, screen):  # call
         for i in range(game.BoardWidth):
             for j in range(game.BoardHeight):
                 # draw Grid
-                pygame.draw.rect(screen, "#121E15", [i*BlockWidth + pos[0], j*BlockWidth + pos[1],
+                pygame.draw.rect(screen, "#222E25", [i*BlockWidth + pos[0], j*BlockWidth + pos[1],
                                                      BlockWidth, BlockWidth], 1)
                 # draw A square if there is one
                 if game.Board[i][j] != -1:
@@ -352,9 +385,9 @@ def startGame(newWidth, newHeight, isExtension, newLevel, isAI, screen):  # call
                                                    BlockWidth-2, BlockWidth-2])
 
         # Render Next Block
-        NBXPos = game.BoardWidth * BlockWidth + 300
+        NBXPos = pos[0] + BlockWidth * newWidth + 50
         NBFont = pygame.font.SysFont("Calibri", 30)
-        NBLabel = NBFont.render("Next Block", 1, (128, 128, 128))
+        NBLabel = NBFont.render("Next Block", 1, (255, 255, 255))
         screen.blit(NBLabel, (NBXPos,200))
         NBx, NBy = NBXPos + 50, 250
         for i in range(len(Sizes[game.NextBlock][0])):
@@ -370,10 +403,11 @@ def startGame(newWidth, newHeight, isExtension, newLevel, isAI, screen):  # call
                                                    BlockWidth-2, BlockWidth-2])
 
         # Render Held Block
+        HBXPos = pos[0] - 175
         HBFont = pygame.font.SysFont("Calibri", 30)
-        HBLabel = HBFont.render("Held Block", 1, (128, 128, 128))
-        screen.blit(HBLabel, (100, 200))
-        HBx, HBy = 150, 250
+        HBLabel = HBFont.render("Held Block", 1, (255, 255, 255))
+        screen.blit(HBLabel, (HBXPos, 200))
+        HBx, HBy = HBXPos + 50, 250
         if game.HeldBlock != -1:
             for i in range(len(Sizes[game.HeldBlock][0])):
                 BlockCords = Sizes[game.HeldBlock][0][i]

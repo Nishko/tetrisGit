@@ -10,6 +10,7 @@ class EventHandler:
         self.toggleButtons = []
         self.sliders = []
         self.vars = {}
+        self.button_sound = pygame.mixer.Sound(os.path.join(current_directory, 'assets/buttonsound.mp3'))
 
     def setValue(self, varname, value):
         self.vars[varname] = value
@@ -54,6 +55,8 @@ class EventHandler:
                 if event.ui_element == button:
                     if varname is not None:
                         self.vars[varname] = value
+                        self.button_sound.play()
+
             for button, varname, true_text, false_text in self.toggleButtons:
                 if event.ui_element == button:
                     if varname is not None:
@@ -117,6 +120,8 @@ class ScreenState:
 
 current_directory = os.path.dirname(__file__)
 pygame.init()
+pygame.mixer.init()
+gameover_sound = pygame.mixer.Sound(os.path.join(current_directory, 'assets/gameoversound.mp3'))
 # create display window
 display = pygame.display.set_mode((800, 600))
 pygame.display.set_caption("Elden Blocks")
@@ -236,6 +241,8 @@ while is_running:
     for i in range(len(screens)):
         if current_screen == i:
             screens[i].show()
+            if i == 0 and not pygame.mixer.music.get_busy():
+                pygame.mixer.music.play(-1)
         else:
             screens[i].hide()
     event_handler.setSliders()
@@ -243,9 +250,11 @@ while is_running:
     gui_manager.draw_ui(display)
     pygame.display.flip()
     if event_handler.getValue("gamestart") == 1:
+        pygame.mixer.music.stop()
         event_handler.setValue("gamestart", 0)
         score = startGame(event_handler.getValue("width"), event_handler.getValue("height"), event_handler.getValue("ext_shapes"), 
                           event_handler.getValue("speed"), event_handler.getValue("AI_mode"), display, gui_manager)
         event_handler.setValue("menustate", 3)
+        gameover_sound.play()
 
 pygame.quit()

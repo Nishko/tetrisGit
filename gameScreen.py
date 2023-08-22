@@ -50,18 +50,21 @@ class GameClass:
     BlockRot = 0  # rotation of current block
     BlockPos = [0,0]  # position of current block
     Board = []  # array of the board
+    ClearedRows = []
     BoardWidth = 10
     BoardHeight = 20
     Score = 0
     Speed = 1
+    fps = 0
     Extension = False
     CanSwapBlock = True
 
-    def __init__(self, newWidth, newHeight, isExtension):
+    def __init__(self, newWidth, newHeight, isExtension, newFps):
         # assign needed variables
         self.BoardWidth, self.BoardHeight = newWidth, newHeight
         self.Extension = isExtension
         self.BlockPos[0] = newWidth//2
+        self.fps = newFps
         self.Board.clear()  # wipe the board
 
         # set random blocks for the current and next block
@@ -74,6 +77,8 @@ class GameClass:
             for j in range(self.BoardHeight):
                 newRow.append(-1)
             self.Board.append(newRow)
+        for i in range(self.BoardHeight):
+            self.ClearedRows.append(-1)
 
     def CheckForRows(self, board, addScore):  # check each row if it's completed and if so remove it
         rowsRemoved = 0
@@ -85,6 +90,8 @@ class GameClass:
                     break
 
             if full:  # remove row if it's completed
+                if addScore:
+                    self.ClearedRows[j] = self.fps / 3
                 rowsRemoved += 1
                 for v in range(j,0,-1):
                     for u in range(self.BoardWidth):
@@ -241,8 +248,8 @@ def startGame(newWidth, newHeight, isExtension, newLevel, isAI, screen, manager,
     playing = True
     fps = 25
     pos = [250,175]
-    game = GameClass(newWidth, newHeight, isExtension)
-    game.__init__(newWidth, newHeight, isExtension)  # restart game
+    game = GameClass(newWidth, newHeight, isExtension, fps)
+    game.__init__(newWidth, newHeight, isExtension, fps)  # restart game
 
     level = newLevel
     BlockWidth = 20  # pixel width of each block
@@ -382,11 +389,27 @@ def startGame(newWidth, newHeight, isExtension, newLevel, isAI, screen, manager,
                 # draw Grid
                 pygame.draw.rect(screen, "#222E25", [i*BlockWidth + pos[0], j*BlockWidth + pos[1],
                                                      BlockWidth, BlockWidth], 1)
+                
                 # draw A square if there is one
-                if game.Board[i][j] != -1:
+                if game.ClearedRows[j] >= 0 and game.Board[i][j] != -1:
+                    W = 1 - game.ClearedRows[j]/fps
+                    OC = Colours[game.Board[i][j]]
+                    newColour = (255-(255 - OC[0]) * W, 255-(255 - OC[1]) * W, 255-(255 - OC[2]) * W)
+                    pygame.draw.rect(screen, newColour, 
+                                    [i * BlockWidth + pos[0] + 1, j * BlockWidth + pos[1] + 1, BlockWidth - 2, BlockWidth - 2])
+                elif game.ClearedRows[j] >= 0 and game.Board[i][j] == -1:
+                    W = game.ClearedRows[j]/fps
+                    pygame.draw.rect(screen, (255 * W, 255 * W, 255 * W), 
+                                    [i * BlockWidth + pos[0] + 1, j * BlockWidth + pos[1] + 1, BlockWidth - 2, BlockWidth - 2])
+                elif game.Board[i][j] != -1:
                     pygame.draw.rect(screen, Colours[game.Board[i][j]], [i * BlockWidth + pos[0] + 1,
-                                                                         j * BlockWidth + pos[1] + 1,
-                                                                         BlockWidth - 2, BlockWidth - 2])
+                                                                        j * BlockWidth + pos[1] + 1,
+                                                                        BlockWidth - 2, BlockWidth - 2])
+
+        #process animation
+        for i in range(len(game.ClearedRows)):
+            if game.ClearedRows[i] >= 0:
+                game.ClearedRows[i] -= 1
 
         # Render Block
         for i in range(len(Sizes[game.BlockInd][0])):

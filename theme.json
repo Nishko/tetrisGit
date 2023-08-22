@@ -3,20 +3,31 @@
     {
         "colours":
         {
-            "normal_text": "#9999FF"
-        }
+            "normal_text": "#ED9008"
+        },
+        "font":
+         {
+             "name": "Mantinia Regular",
+             "size": "16",
+             "regular_path": "assets/Mantinia Regular.otf"
+         }
     },
 
     "button":
     {
         "colours":
         {
-            "normal_bg": "#222249",
-             "hovered_bg": "#44448e",
-             "active_bg": "#FFFFFF",
-             "normal_text": "#FFFFFF",
-             "hovered_text": "#FFFFFF",
-             "active_text": "#000000"
+            "normal_bg": "#013220",
+             "hovered_bg": "#114230",
+             "active_bg": "#FFAA00",
+             "hovered_text": "#FFAA00",
+             "active_text": "#114230"
+        },
+        "font":
+        {
+            "name": "Mantinia Regular",
+            "size": "16",
+            "regular_path": "assets/Mantinia Regular.otf"
         },
         "misc":
          {
@@ -32,7 +43,12 @@
              "dark_bg":"#000000",
              "normal_border": "#000000"
          },
-
+         "font":
+         {
+             "name": "Mantinia Regular",
+             "size": "16",
+             "regular_path": "assets/Mantinia Regular.otf"
+         },
          "misc":
          {
              "border_width": "0",

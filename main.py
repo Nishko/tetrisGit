@@ -44,6 +44,7 @@ class EventHandler:
                     value = round(event.value / increment) * increment
                     if varname is not None:
                         self.setValue(varname, value)
+        gui_manager.process_events(event)
 
 
 class ScreenState:
@@ -95,6 +96,11 @@ pygame.display.set_caption("The Spectacularly Silly Shape Shuffling Showdown")
 gui_manager = pygame_gui.UIManager((800, 600), 'theme.json')
 event_handler = EventHandler()
 screens = []
+font_list = []
+for size in [8, 9, 10, 11, 13, 14, 16, 18, 20, 24, 32, 48]:
+    font_list.append({'name': 'Mantinia Regular', 'point_size': size, 'style': 'regular'})
+gui_manager.preload_fonts(font_list)
+pygame.mixer.music.load("assets/music.mp3")
 
 # Main Menu
 main_menu = ScreenState(gui_manager, event_handler)
@@ -131,11 +137,11 @@ highscores.newButton(300, 500, 200, 50, "Return to Main Menu", "menustate", 0)
 # Gameplay
 endgame = ScreenState(gui_manager, event_handler)
 screens.append(endgame)
-endgame.newText(0, 0, 800, 100, "Game Over", 7)
+endgame.newText(0, 0, 800, 100, "You Died", 7)
 endgame.newButton(300, 500, 200, 50, "Return to Main Menu", "menustate", 0)
 
 # Default Values
-event_handler.setValue("menustate", 0)
+event_handler.setValue("menustate", len(screens))
 event_handler.setValue("gamestart", 0)
 event_handler.setValue("quitgame", 0)
 event_handler.setValue("width", 10)
@@ -144,14 +150,30 @@ event_handler.setValue("speed", 3)
 
 # Run game
 clock = pygame.time.Clock()
+pygame.mixer.music.play(-1)
 is_running = True
+start_time = pygame.time.get_ticks()
+for screen in screens:
+        screen.hide()
+startup_text = pygame_gui.elements.UITextBox(relative_rect=pygame.Rect((0, 0), (800, 100)), 
+    html_text=f"<font size={1}>Tetris</font>", manager=gui_manager)
+startup_time = 5000
+while pygame.time.get_ticks() - start_time < startup_time:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            is_running = False    
+    font_size = 1 + 0.5 * round(12 * (pygame.time.get_ticks() - start_time) / startup_time)
+    startup_text.set_text(f"<font size={font_size}>Tetris</font>")
+    gui_manager.update(clock.tick(60) / 1000.0)
+    gui_manager.draw_ui(display)
+    pygame.display.flip()
+startup_text.visible = False
+event_handler.setValue("menustate", 0)
 while is_running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             is_running = False
-
         event_handler.runEvent(event)
-        gui_manager.process_events(event)
 
     gui_manager.update(clock.tick(60) / 1000.0)
     if event_handler.getValue("quitgame") == 1:

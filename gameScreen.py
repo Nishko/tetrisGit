@@ -233,7 +233,7 @@ def pauseGame(screen, manager, score):
             element.show()
         pygame.display.flip()
 
-def startGame(newWidth, newHeight, isExtension, newLevel, isAI, screen, manager):  # called at the start of the game
+def startGame(newWidth, newHeight, isExtension, newLevel, isAI, screen, manager, music, font):  # called at the start of the game
     clock = pygame.time.Clock()
     playing = True
     fps = 25
@@ -256,6 +256,13 @@ def startGame(newWidth, newHeight, isExtension, newLevel, isAI, screen, manager)
     targetPos = -1
     targetRot = 0
 
+    # Play Music
+    pygame.mixer.music.load(music)
+    pygame.mixer.music.play(-1)
+
+    # Font Colour
+    colour = pygame.Color("#ED9008")
+
     while playing:
         screen.fill((0, 0, 0))  # set screen background
 
@@ -268,6 +275,7 @@ def startGame(newWidth, newHeight, isExtension, newLevel, isAI, screen, manager)
             returnVal = game.MoveDown()
             if not returnVal[0]:  # game is over
                 playing = False
+                pygame.mixer.music.stop()
                 return game.Score
             if returnVal[1] == 1:
                 targetPos = -1
@@ -299,6 +307,7 @@ def startGame(newWidth, newHeight, isExtension, newLevel, isAI, screen, manager)
                         game.HoldBlock()
                     if event.key == pygame.K_ESCAPE:
                         if pauseGame(screen, manager, game.Score) == True:
+                            pygame.mixer.music.stop()
                             return game.Score
                 elif event.type == pygame.KEYUP:
                     if event.key == pygame.K_DOWN:
@@ -386,8 +395,8 @@ def startGame(newWidth, newHeight, isExtension, newLevel, isAI, screen, manager)
 
         # Render Next Block
         NBXPos = pos[0] + BlockWidth * newWidth + 50
-        NBFont = pygame.font.SysFont("Calibri", 30)
-        NBLabel = NBFont.render("Next Block", 1, (255, 255, 255))
+        NBFont = pygame.font.Font(font, 30)
+        NBLabel = NBFont.render("Next Block", 1, colour)
         screen.blit(NBLabel, (NBXPos,200))
         NBx, NBy = NBXPos + 50, 250
         for i in range(len(Sizes[game.NextBlock][0])):
@@ -404,8 +413,8 @@ def startGame(newWidth, newHeight, isExtension, newLevel, isAI, screen, manager)
 
         # Render Held Block
         HBXPos = pos[0] - 175
-        HBFont = pygame.font.SysFont("Calibri", 30)
-        HBLabel = HBFont.render("Held Block", 1, (255, 255, 255))
+        HBFont = pygame.font.Font(font, 30)
+        HBLabel = HBFont.render("Held Block", 1, colour)
         screen.blit(HBLabel, (HBXPos, 200))
         HBx, HBy = HBXPos + 50, 250
         if game.HeldBlock != -1:
@@ -423,6 +432,7 @@ def startGame(newWidth, newHeight, isExtension, newLevel, isAI, screen, manager)
 
         clock.tick(fps)
         pygame.display.flip()
+    pygame.mixer.music.stop()
 
 def fitnessRating(game, newShape, i):
     highestPos = 0

@@ -130,12 +130,13 @@ gui_manager = pygame_gui.UIManager((800, 600))
 event_handler = EventHandler()
 screens = []
 font_list = []
-gui_manager.add_font_paths('Mantinia Regular', os.path.join(current_directory, 'assets/Mantinia Regular.otf'))
+font_path = os.path.join(current_directory, 'assets/Mantinia Regular.ttf')
+gui_manager.add_font_paths('Mantinia Regular', font_path)
 for size in range(1, 49):
     font_list.append({'name': 'Mantinia Regular', 'point_size': size, 'style': 'regular'})
 gui_manager.preload_fonts(font_list)
 gui_manager.get_theme().load_theme(os.path.join(current_directory, 'assets/theme.json'))
-pygame.mixer.music.load(os.path.join(current_directory, 'assets/music.mp3'))
+game_music = os.path.join(current_directory, 'assets/gamemusic.mp3')
 
 # Main Menu
 main_menu = ScreenState(gui_manager, event_handler)
@@ -189,6 +190,7 @@ event_handler.setValue("AI_mode", False)
 
 # Run game
 clock = pygame.time.Clock()
+pygame.mixer.music.load(os.path.join(current_directory, 'assets/music.mp3'))
 pygame.mixer.music.play(-1)
 is_running = True
 
@@ -242,6 +244,7 @@ while is_running:
         if current_screen == i:
             screens[i].show()
             if i == 0 and not pygame.mixer.music.get_busy():
+                pygame.mixer.music.load(os.path.join(current_directory, 'assets/music.mp3'))
                 pygame.mixer.music.play(-1)
         else:
             screens[i].hide()
@@ -253,7 +256,7 @@ while is_running:
         pygame.mixer.music.stop()
         event_handler.setValue("gamestart", 0)
         score = startGame(event_handler.getValue("width"), event_handler.getValue("height"), event_handler.getValue("ext_shapes"), 
-                          event_handler.getValue("speed"), event_handler.getValue("AI_mode"), display, gui_manager)
+                          event_handler.getValue("speed"), event_handler.getValue("AI_mode"), display, gui_manager, game_music, font_path)
         event_handler.setValue("menustate", 3)
         gameover_sound.play()
 

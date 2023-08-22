@@ -1,4 +1,5 @@
 import os
+import sys
 import pygame
 import pygame_gui
 from gameScreen import startGame
@@ -187,6 +188,9 @@ pygame.mixer.music.play(-1)
 is_running = True
 
 # Startup Sequence
+introskip = False
+if len(sys.argv) > 1:
+    introskip = True
 start_time = pygame.time.get_ticks()
 for screen in screens:
         screen.hide()
@@ -198,7 +202,7 @@ with open(os.path.join(current_directory, 'assets/creators.txt'), "r") as file:
     for line in file:
         startup_text_lines.append(line)
 line = 0
-while line < len(startup_text_lines) + 3:
+while line < len(startup_text_lines) + 3 and not introskip:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             is_running = False

@@ -53,6 +53,7 @@ class GameClass:
     BoardWidth = 10
     BoardHeight = 20
     Score = 0
+    Speed = 1
     Extension = False
     CanSwapBlock = True
 
@@ -90,6 +91,8 @@ class GameClass:
                         board[u][v] = board[u][v-1]
         if addScore:
             self.Score += RowValues[rowsRemoved]
+            if self.Speed < 5:
+                self.Speed += rowsRemoved / 20.0
 
     def OutOfBounds(self, Shape, Pos):  # check if a given shape and position is an invalid space
         for i in range(len(Shape)):
@@ -271,7 +274,7 @@ def startGame(newWidth, newHeight, isExtension, newLevel, isAI, screen, manager,
         movementCooldown += 1
 
         # move block down
-        if counter > (fps//level) or (DownFast and counter > (fps//level)/10):
+        if counter > (fps//(level * game.Speed)) or (DownFast and counter > (fps//(level * game.Speed))/10):
             returnVal = game.MoveDown()
             if not returnVal[0]:  # game is over
                 playing = False
@@ -293,6 +296,11 @@ def startGame(newWidth, newHeight, isExtension, newLevel, isAI, screen, manager,
         for event in pygame.event.get():
             if event.type == pygame.QUIT:  # quit game
                 playing = False
+            if event.type == pygame.KEYDOWN:  # pause game
+                if event.key == pygame.K_ESCAPE or event.key == pygame.K_p:
+                        if pauseGame(screen, manager, game.Score) == True:
+                            pygame.mixer.music.stop()
+                            return game.Score
             if not AIPlaying:
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_UP:
@@ -305,10 +313,6 @@ def startGame(newWidth, newHeight, isExtension, newLevel, isAI, screen, manager,
                         right = True
                     if event.key == pygame.K_SPACE:
                         game.HoldBlock()
-                    if event.key == pygame.K_ESCAPE:
-                        if pauseGame(screen, manager, game.Score) == True:
-                            pygame.mixer.music.stop()
-                            return game.Score
                 elif event.type == pygame.KEYUP:
                     if event.key == pygame.K_DOWN:
                         DownFast = False
@@ -412,7 +416,7 @@ def startGame(newWidth, newHeight, isExtension, newLevel, isAI, screen, manager,
                                                    BlockWidth-2, BlockWidth-2])
 
         # Render Held Block
-        HBXPos = pos[0] - 175
+        HBXPos = pos[0] - 215
         HBFont = pygame.font.Font(font, 30)
         HBLabel = HBFont.render("Held Block", 1, colour)
         screen.blit(HBLabel, (HBXPos, 200))

@@ -1,3 +1,4 @@
+import os
 import pygame
 import pygame_gui
 from gameScreen import startGame
@@ -113,19 +114,22 @@ class ScreenState:
             object.hide() 
 
 
+current_directory = os.path.dirname(__file__)
 pygame.init()
 # create display window
 display = pygame.display.set_mode((800, 600))
-pygame.display.set_caption("The Spectacularly Silly Shape Shuffling Showdown")
+pygame.display.set_caption("Elden Blocks")
 # gui manager and event handler
-gui_manager = pygame_gui.UIManager((800, 600), 'theme.json')
+gui_manager = pygame_gui.UIManager((800, 600))
 event_handler = EventHandler()
 screens = []
 font_list = []
+gui_manager.add_font_paths('Mantinia Regular', os.path.join(current_directory, 'assets/Mantinia Regular.otf'))
 for size in range(1, 49):
     font_list.append({'name': 'Mantinia Regular', 'point_size': size, 'style': 'regular'})
 gui_manager.preload_fonts(font_list)
-pygame.mixer.music.load("assets/music.mp3")
+gui_manager.get_theme().load_theme(os.path.join(current_directory, 'assets/theme.json'))
+pygame.mixer.music.load(os.path.join(current_directory, 'assets/music.mp3'))
 
 # Main Menu
 main_menu = ScreenState(gui_manager, event_handler)
@@ -135,7 +139,7 @@ main_menu.newButton(300, 275, 200, 50, "Top Scores", "menustate", 2)
 main_menu.newButton(300, 350, 200, 50, "Configure", "menustate", 1)
 main_menu.newButton(300, 500, 200, 50, "Quit", "quitgame", 1)
 main_menu.newText(0, 0, 800, 100, "Tetris", 7)
-with open("creators.txt", "r") as file:
+with open(os.path.join(current_directory, 'assets/creators.txt'), "r") as file:
     creators = file.read()
 main_menu.newText(0, 450, 250, 150, creators, 4)
 
@@ -190,7 +194,7 @@ startup_text = pygame_gui.elements.UITextBox(relative_rect=pygame.Rect((0, 250),
     html_text=f"<font size={7}> </font>", manager=gui_manager)
 startup_time = 10000
 startup_text_lines = []
-with open("creators.txt", "r") as file:
+with open(os.path.join(current_directory, 'assets/creators.txt'), "r") as file:
     for line in file:
         startup_text_lines.append(line)
 line = 0

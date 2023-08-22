@@ -97,7 +97,7 @@ gui_manager = pygame_gui.UIManager((800, 600), 'theme.json')
 event_handler = EventHandler()
 screens = []
 font_list = []
-for size in [8, 9, 10, 11, 13, 14, 16, 18, 20, 24, 32, 48]:
+for size in range(1, 49):
     font_list.append({'name': 'Mantinia Regular', 'point_size': size, 'style': 'regular'})
 gui_manager.preload_fonts(font_list)
 pygame.mixer.music.load("assets/music.mp3")
@@ -152,22 +152,35 @@ event_handler.setValue("speed", 3)
 clock = pygame.time.Clock()
 pygame.mixer.music.play(-1)
 is_running = True
+
+# Startup Sequence
 start_time = pygame.time.get_ticks()
 for screen in screens:
         screen.hide()
 startup_text = pygame_gui.elements.UITextBox(relative_rect=pygame.Rect((0, 0), (800, 100)), 
-    html_text=f"<font size={1}>Tetris</font>", manager=gui_manager)
-startup_time = 5000
-while pygame.time.get_ticks() - start_time < startup_time:
+    html_text=f"<font size={7}> </font>", manager=gui_manager)
+startup_time = 10000
+startup_text_lines = []
+with open("creators.txt", "r") as file:
+    for line in file:
+        startup_text_lines.append(line)
+line = 0
+while line < len(startup_text_lines) + 3:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            is_running = False    
-    font_size = 1 + 0.5 * round(12 * (pygame.time.get_ticks() - start_time) / startup_time)
-    startup_text.set_text(f"<font size={font_size}>Tetris</font>")
+            is_running = False
+        event_handler.runEvent(event)
+    line = (pygame.time.get_ticks() - start_time) // 2180
+    if line in range(len(startup_text_lines)):
+        startup_text.set_text(f"<font size={4}>{startup_text_lines[line]}</font>")
+    else:
+        startup_text.set_text(f"<font size={7}> </font>")
     gui_manager.update(clock.tick(60) / 1000.0)
     gui_manager.draw_ui(display)
     pygame.display.flip()
 startup_text.visible = False
+
+# Main Loop
 event_handler.setValue("menustate", 0)
 while is_running:
     for event in pygame.event.get():

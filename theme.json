@@ -8,8 +8,7 @@
         "font":
          {
              "name": "Mantinia Regular",
-             "size": "16",
-             "regular_path": "assets/Mantinia Regular.otf"
+             "size": "16"
          }
     },
 
@@ -46,8 +45,7 @@
          "font":
          {
              "name": "Mantinia Regular",
-             "size": "16",
-             "regular_path": "assets/Mantinia Regular.otf"
+             "size": "16"
          },
          "misc":
          {

@@ -148,6 +148,8 @@ class highscores:
         self.scores = []
         with open(filename, "r") as file:
             for line in file:
+                if len(line.split(", ")) < 2:
+                    continue
                 name = line.split(", ")[0]
                 score = int(line.split(", ")[1])
                 self.scores.append((name, score))

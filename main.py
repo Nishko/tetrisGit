@@ -113,6 +113,7 @@ class ScreenState:
             html_text=f"<font size={font_size}>{text}</font>", manager=self.my_gui)
         new_text.visible = False
         self.objects.append(new_text)
+        return new_text
 
     def newTextVar(self, x_pos, y_pos, x_dim, y_dim, pre_text, varname, post_text, font_size=6):
         new_text = pygame_gui.elements.UITextBox(relative_rect=pygame.Rect((x_pos, y_pos), (x_dim, y_dim)), 
@@ -141,6 +142,40 @@ class ScreenState:
         for object in self.objects:
             object.hide() 
 
+class highscores:
+    def __init__(self, filename):
+        self.filename = filename
+        self.scores = []
+        with open(filename, "r") as file:
+            for line in file:
+                name = line.split(", ")[0]
+                score = int(line.split(", ")[1])
+                self.scores.append((name, score))
+        self.sortScores()
+    
+    def sortScores(self):
+        self.scores = sorted(self.scores, key=lambda x: x[1], reverse=True)
+
+    def getNames(self):
+        names = ""
+        for name, _ in self.scores:
+            names += name + '\n'
+        return names
+    
+    def getScores(self):
+        out_scores = ""
+        for _, score in self.scores:
+            out_scores += f"{score}\n"
+        return out_scores
+    
+    def scoreIsHigh(self, score):
+        return score > self.scores[-1][1]
+    
+    def saveScores(self):
+         with open(self.filename, "w") as file:
+            for name, score in self.scores:
+                file.write(f"{name}, {score}\n")
+
 
 current_directory = os.path.dirname(__file__)
 pygame.init()
@@ -161,6 +196,8 @@ for size in range(1, 49):
 gui_manager.preload_fonts(font_list)
 gui_manager.get_theme().load_theme(os.path.join(current_directory, 'assets/theme.json'))
 game_music = os.path.join(current_directory, 'assets/gamemusic.mp3')
+
+high_scores = highscores(os.path.join(current_directory, 'assets/scores.txt'))
 
 # Main Menu
 main_menu = ScreenState(gui_manager, event_handler)
@@ -195,13 +232,19 @@ highscores = ScreenState(gui_manager, event_handler)
 screens.append(highscores)
 highscores.newText(0, 0, 800, 100, "Top Scores", 7)
 highscores.newButton(300, 500, 200, 50, "Return to Main Menu", "menustate", 0)
+names = highscores.newText(0, 100, 390, 400, high_scores.getNames(), 6)
+scores = highscores.newText(410, 100, 390, 400, high_scores.getScores(), 6)
+names.text_horiz_alignment = "right"
+names.rebuild()
+scores.text_horiz_alignment = "left"
+scores.rebuild()
 
 # Gameplay
 endgame = ScreenState(gui_manager, event_handler)
 screens.append(endgame)
-endgame.newText(0, 0, 800, 100, "You Died", 7)
+endgame.newText(0, 0, 800, 400, "<font color='#FF0000'>YOU DIED</font>", 7)
 endgame.newButton(300, 500, 200, 50, "Return to Main Menu", "menustate", 0)
-endgame.newTextVar(0, 250, 800, 100, "Score: ", "score", "", 6)
+endgame.newTextVar(0, 400, 800, 100, "Score: ", "score", "", 6)
 
 # Default Values
 event_handler.setValue("menustate", len(screens))
@@ -284,4 +327,5 @@ while is_running:
         event_handler.setValue("menustate", 3)
         gameover_sound.play()
 
+high_scores.saveScores()
 pygame.quit()

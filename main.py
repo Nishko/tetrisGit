@@ -157,7 +157,7 @@ is_running = True
 start_time = pygame.time.get_ticks()
 for screen in screens:
         screen.hide()
-startup_text = pygame_gui.elements.UITextBox(relative_rect=pygame.Rect((0, 0), (800, 100)), 
+startup_text = pygame_gui.elements.UITextBox(relative_rect=pygame.Rect((0, 250), (800, 100)), 
     html_text=f"<font size={7}> </font>", manager=gui_manager)
 startup_time = 10000
 startup_text_lines = []
@@ -170,11 +170,13 @@ while line < len(startup_text_lines) + 3:
         if event.type == pygame.QUIT:
             is_running = False
         event_handler.runEvent(event)
-    line = (pygame.time.get_ticks() - start_time) // 2180
+    line = (pygame.time.get_ticks() - start_time) // 2185
     if line in range(len(startup_text_lines)):
         startup_text.set_text(f"<font size={4}>{startup_text_lines[line]}</font>")
+    elif line == len(startup_text_lines):
+        startup_text.set_text(f"<font size={5}>Presenting...</font>")
     else:
-        startup_text.set_text(f"<font size={7}> </font>")
+        startup_text.set_text(f"<font size={5}> </font>")
     gui_manager.update(clock.tick(60) / 1000.0)
     gui_manager.draw_ui(display)
     pygame.display.flip()

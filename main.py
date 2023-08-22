@@ -9,6 +9,7 @@ class EventHandler:
         self.buttons = []
         self.toggleButtons = []
         self.sliders = []
+        self.textVars = []
         self.vars = {}
         self.button_sound = pygame.mixer.Sound(os.path.join(current_directory, 'assets/buttonsound.mp3'))
 
@@ -36,6 +37,12 @@ class EventHandler:
         if curr_value is None:
             self.setValue(varname, slider.get_current_value())
 
+    def newTextVar(self, textbox, pre_text, varname, post_text):
+        self.textVars.append((textbox, pre_text, varname, post_text))
+        curr_value = self.vars.get(varname)
+        if curr_value is None:
+            self.setValue(varname, "")
+
     def setSliders(self):
         for slider, varname, _, text in self.sliders:
             value = self.getValue(varname)
@@ -48,6 +55,16 @@ class EventHandler:
                 button.set_text(true_text)
             else:
                 button.set_text(false_text)
+
+    def setTextVars(self):
+        for textbox, pre_text, varname, post_text in self.textVars:
+            value = self.getValue(varname)
+            textbox.set_text(f"{pre_text}{value}{post_text}")
+
+    def setAll(self):
+        self.setTextVars()
+        self.setToggles()
+        self.setTextVars()
     
     def runEvent(self, event):
         if event.type == pygame_gui.UI_BUTTON_PRESSED:
@@ -96,6 +113,13 @@ class ScreenState:
             html_text=f"<font size={font_size}>{text}</font>", manager=self.my_gui)
         new_text.visible = False
         self.objects.append(new_text)
+
+    def newTextVar(self, x_pos, y_pos, x_dim, y_dim, pre_text, varname, post_text, font_size=6):
+        new_text = pygame_gui.elements.UITextBox(relative_rect=pygame.Rect((x_pos, y_pos), (x_dim, y_dim)), 
+            html_text=f"<font size={font_size}> </font>", manager=self.my_gui)
+        new_text.visible = False
+        self.objects.append(new_text)
+        self.my_events.newTextVar(new_text, pre_text, varname, post_text)
 
     def newSlider(self, x_pos, y_pos, x_dim, y_dim, min_val, max_val, inc_val, varname):
         new_slider = pygame_gui.elements.UIHorizontalSlider(relative_rect=pygame.Rect((x_pos, y_pos), (x_dim - 50, y_dim)), 
@@ -177,6 +201,7 @@ endgame = ScreenState(gui_manager, event_handler)
 screens.append(endgame)
 endgame.newText(0, 0, 800, 100, "You Died", 7)
 endgame.newButton(300, 500, 200, 50, "Return to Main Menu", "menustate", 0)
+endgame.newTextVar(0, 250, 800, 100, "Score: ", "score", "", 6)
 
 # Default Values
 event_handler.setValue("menustate", len(screens))
@@ -248,15 +273,14 @@ while is_running:
                 pygame.mixer.music.play(-1)
         else:
             screens[i].hide()
-    event_handler.setSliders()
-    event_handler.setToggles()
+    event_handler.setAll()
     gui_manager.draw_ui(display)
     pygame.display.flip()
     if event_handler.getValue("gamestart") == 1:
         pygame.mixer.music.stop()
         event_handler.setValue("gamestart", 0)
-        score = startGame(event_handler.getValue("width"), event_handler.getValue("height"), event_handler.getValue("ext_shapes"), 
-                          event_handler.getValue("speed"), event_handler.getValue("AI_mode"), display, gui_manager, game_music, font_path)
+        event_handler.setValue("score", startGame(event_handler.getValue("width"), event_handler.getValue("height"), event_handler.getValue("ext_shapes"), 
+                          event_handler.getValue("speed"), event_handler.getValue("AI_mode"), display, gui_manager, game_music, font_path))
         event_handler.setValue("menustate", 3)
         gameover_sound.play()
 

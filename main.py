@@ -210,7 +210,8 @@ class highscores:
     def addScore(self, name, score):
         self.scores.append((name, score))
         self.sortScores()
-        self.scores.pop()
+        while len(self.scores) > 10:
+            self.scores.pop()
         self.saveScores()
 
 

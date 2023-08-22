@@ -1,10 +1,6 @@
 Elizabeth Chang, 10100
 Larry Wen, 10000
 Matt, 9100
-Matt, 9100
-Rowan, 100
 Rowan, 100
 Bailey, 0
-Bailey, 0
-Jarrah, -1
 Jarrah, -1

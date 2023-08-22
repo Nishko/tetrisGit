@@ -5,6 +5,7 @@ from gameScreen import startGame
 class EventHandler:
     def __init__(self):
         self.buttons = []
+        self.toggleButtons = []
         self.sliders = []
         self.vars = {}
 
@@ -20,6 +21,12 @@ class EventHandler:
         if curr_value is None:
             self.setValue(varname, value)
 
+    def newToggleButtonEvent(self, button, varname, true_text, false_text):
+        self.toggleButtons.append((button, varname, true_text, false_text))
+        curr_value = self.vars.get(varname)
+        if curr_value is None:
+            self.setValue(varname, True)
+
     def newSliderEvent(self, slider, varname, increment, link_text):
         self.sliders.append((slider, varname, increment, link_text))
         curr_value = self.getValue(varname)
@@ -31,6 +38,13 @@ class EventHandler:
             value = self.getValue(varname)
             slider.set_current_value(value)
             text.set_text(f"{value}")
+
+    def setToggles(self):
+        for button, varname, true_text, false_text in self.toggleButtons:
+            if self.getValue(varname):
+                button.set_text(true_text)
+            else:
+                button.set_text(false_text)
     
     def runEvent(self, event):
         if event.type == pygame_gui.UI_BUTTON_PRESSED:
@@ -38,6 +52,10 @@ class EventHandler:
                 if event.ui_element == button:
                     if varname is not None:
                         self.vars[varname] = value
+            for button, varname, true_text, false_text in self.toggleButtons:
+                if event.ui_element == button:
+                    if varname is not None:
+                        self.vars[varname] = not self.vars[varname]
         elif event.type == pygame_gui.UI_HORIZONTAL_SLIDER_MOVED:
             for slider, varname, increment, text in self.sliders:
                 if event.ui_element == slider:
@@ -60,6 +78,13 @@ class ScreenState:
         new_button.visible = False
         self.objects.append(new_button)
         self.my_events.newButtonEvent(new_button, varname, value)
+
+    def newToggleButton(self, x_pos, y_pos, x_dim, y_dim, varname, true_text, false_text):
+        new_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((x_pos, y_pos), (x_dim, y_dim)), 
+            text=true_text, manager=self.my_gui)
+        new_button.visible = False
+        self.objects.append(new_button)
+        self.my_events.newToggleButtonEvent(new_button, varname, true_text, false_text)
 
     def newText(self, x_pos, y_pos, x_dim, y_dim, text, font_size=6):
         new_text = pygame_gui.elements.UITextBox(relative_rect=pygame.Rect((x_pos, y_pos), (x_dim, y_dim)), 
@@ -126,7 +151,9 @@ settings.newSlider(200, 175, 450, 75, 15, 5, 1, "width")
 settings.newText(0, 250, 200, 75, "Tower Height", 4)
 settings.newSlider(200, 250, 450, 75, 20, 10, 1, "height")
 settings.newText(0, 325, 200, 75, "Extended Shapes", 4)
+settings.newToggleButton(210, 335, 430, 55, "ext_shapes", "Extended Shapes", "Default Shapes")
 settings.newText(0, 400, 200, 75, "AI Mode", 4)
+settings.newToggleButton(210, 410, 430, 55, "AI_mode", "AI controlled game", "Player controlled game")
 
 # Highscore Menu
 highscores = ScreenState(gui_manager, event_handler)
@@ -147,6 +174,8 @@ event_handler.setValue("quitgame", 0)
 event_handler.setValue("width", 10)
 event_handler.setValue("height", 20)
 event_handler.setValue("speed", 3)
+event_handler.setValue("ext_shapes", False)
+event_handler.setValue("AI_mode", False)
 
 # Run game
 clock = pygame.time.Clock()
@@ -202,12 +231,13 @@ while is_running:
         else:
             screens[i].hide()
     event_handler.setSliders()
+    event_handler.setToggles()
     gui_manager.draw_ui(display)
     pygame.display.flip()
     if event_handler.getValue("gamestart") == 1:
         event_handler.setValue("gamestart", 0)
-        score = startGame(event_handler.getValue("width"), event_handler.getValue("height"), 
-                          True, event_handler.getValue("speed"), False, display, gui_manager)
+        score = startGame(event_handler.getValue("width"), event_handler.getValue("height"), event_handler.getValue("ext_shapes"), 
+                          event_handler.getValue("speed"), event_handler.getValue("AI_mode"), display, gui_manager)
         event_handler.setValue("menustate", 3)
 
 pygame.quit()

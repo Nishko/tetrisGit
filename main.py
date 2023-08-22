@@ -10,6 +10,7 @@ class EventHandler:
         self.toggleButtons = []
         self.sliders = []
         self.textVars = []
+        self.user = None
         self.vars = {}
         self.button_sound = pygame.mixer.Sound(os.path.join(current_directory, 'assets/buttonsound.mp3'))
 
@@ -18,6 +19,9 @@ class EventHandler:
 
     def getValue(self, varname):
         return self.vars.get(varname)
+    
+    def getUser(self):
+        return self.user.get_text()
 
     def newButtonEvent(self, button, varname, value):
         self.buttons.append((button, varname, value))
@@ -43,6 +47,9 @@ class EventHandler:
         if curr_value is None:
             self.setValue(varname, "")
 
+    def highScoreEntry(self, text_entry):
+        self.user = text_entry
+
     def setSliders(self):
         for slider, varname, _, text in self.sliders:
             value = self.getValue(varname)
@@ -62,7 +69,7 @@ class EventHandler:
             textbox.set_text(f"{pre_text}{value}{post_text}")
 
     def setAll(self):
-        self.setTextVars()
+        self.setSliders()
         self.setToggles()
         self.setTextVars()
     
@@ -73,8 +80,7 @@ class EventHandler:
                     if varname is not None:
                         self.vars[varname] = value
                         self.button_sound.play()
-
-            for button, varname, true_text, false_text in self.toggleButtons:
+            for button, varname, _, _ in self.toggleButtons:
                 if event.ui_element == button:
                     if varname is not None:
                         self.vars[varname] = not self.vars[varname]
@@ -87,12 +93,13 @@ class EventHandler:
         gui_manager.process_events(event)
 
 
-class ScreenState:
+class ScreenElements:
     def __init__(self, gui, events, colour=(0, 0, 0)):
         self.my_gui = gui
         self.my_events = events
         self.colour = colour
         self.objects = []
+        self.focusobjects = []
 
     def newButton(self, x_pos, y_pos, x_dim, y_dim, text, varname, value):
         new_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((x_pos, y_pos), (x_dim, y_dim)), 
@@ -121,6 +128,7 @@ class ScreenState:
         new_text.visible = False
         self.objects.append(new_text)
         self.my_events.newTextVar(new_text, pre_text, varname, post_text)
+        return new_text
 
     def newSlider(self, x_pos, y_pos, x_dim, y_dim, min_val, max_val, inc_val, varname):
         new_slider = pygame_gui.elements.UIHorizontalSlider(relative_rect=pygame.Rect((x_pos, y_pos), (x_dim - 50, y_dim)), 
@@ -133,14 +141,35 @@ class ScreenState:
         self.objects.append(link_text)
         self.my_events.newSliderEvent(new_slider, varname, inc_val, link_text)
 
+    def highScoreTextEntry(self, x_pos, y_pos, x_dim, y_dim, text, font_size=6):
+        new_entry = pygame_gui.elements.UITextEntryBox(relative_rect=pygame.Rect((x_pos + x_dim // 2, y_pos), (x_dim // 2, y_dim)), 
+            initial_text="Default User", manager=self.my_gui)
+        new_entry.visible = False
+        new_entry.background_colour = pygame.Color("#444444")
+        new_entry.text_horiz_alignment = "left"
+        new_entry.rebuild()
+        link_text = pygame_gui.elements.UITextBox(relative_rect=pygame.Rect((x_pos, y_pos), (x_dim // 2, y_dim)), 
+            html_text=f"<font size={font_size}>{text}</font>", manager=self.my_gui)
+        link_text.visible = False
+        link_text.text_horiz_alignment = "right"
+        link_text.rebuild()
+        self.objects.append(new_entry)
+        self.focusobjects.append(new_entry)
+        self.objects.append(link_text)
+        self.my_events.highScoreEntry(new_entry)
+
     def show(self):
         display.fill(self.colour)
         for object in self.objects:
-            object.show() 
+            object.show()
+        for object in self.focusobjects:
+            object.focus()
         
     def hide(self):
         for object in self.objects:
-            object.hide() 
+            object.hide()
+        for object in self.focusobjects:
+            object.unfocus()
 
 class highscores:
     def __init__(self, filename):
@@ -178,6 +207,12 @@ class highscores:
             for name, score in self.scores:
                 file.write(f"{name}, {score}\n")
 
+    def addScore(self, name, score):
+        self.scores.append((name, score))
+        self.sortScores()
+        self.scores.pop()
+        self.saveScores()
+
 
 current_directory = os.path.dirname(__file__)
 pygame.init()
@@ -200,9 +235,11 @@ gui_manager.get_theme().load_theme(os.path.join(current_directory, 'assets/theme
 game_music = os.path.join(current_directory, 'assets/gamemusic.mp3')
 
 high_scores = highscores(os.path.join(current_directory, 'assets/scores.txt'))
+event_handler.setValue("names", high_scores.getNames())
+event_handler.setValue("scores", high_scores.getScores())
 
 # Main Menu
-main_menu = ScreenState(gui_manager, event_handler)
+main_menu = ScreenElements(gui_manager, event_handler)
 screens.append(main_menu)
 main_menu.newButton(300, 200, 200, 50, "Play Game", "gamestart", 1)
 main_menu.newButton(300, 275, 200, 50, "Top Scores", "menustate", 2)
@@ -214,7 +251,7 @@ with open(os.path.join(current_directory, 'assets/creators.txt'), "r") as file:
 main_menu.newText(0, 450, 250, 150, creators, 4)
 
 # Settings Menu
-settings = ScreenState(gui_manager, event_handler)
+settings = ScreenElements(gui_manager, event_handler)
 screens.append(settings)
 settings.newText(0, 0, 800, 100, "Configuration", 7)
 settings.newButton(300, 500, 200, 50, "Return to Main Menu", "menustate", 0)
@@ -230,26 +267,33 @@ settings.newText(0, 400, 200, 75, "AI Mode", 4)
 settings.newToggleButton(210, 410, 430, 55, "AI_mode", "AI controlled game", "Player controlled game")
 
 # Highscore Menu
-highscores = ScreenState(gui_manager, event_handler)
-screens.append(highscores)
-highscores.newText(0, 0, 800, 100, "Top Scores", 7)
-highscores.newButton(300, 500, 200, 50, "Return to Main Menu", "menustate", 0)
-names = highscores.newText(0, 100, 390, 400, high_scores.getNames(), 6)
-scores = highscores.newText(410, 100, 390, 400, high_scores.getScores(), 6)
+highscore_menu = ScreenElements(gui_manager, event_handler)
+screens.append(highscore_menu)
+highscore_menu.newText(0, 0, 800, 100, "Top Scores", 7)
+highscore_menu.newButton(300, 500, 200, 50, "Return to Main Menu", "menustate", 0)
+names = highscore_menu.newTextVar(0, 100, 390, 400, "", "names", "", 6)
+scores = highscore_menu.newTextVar(410, 100, 390, 400, "", "scores", "", 6)
 names.text_horiz_alignment = "right"
 names.rebuild()
 scores.text_horiz_alignment = "left"
 scores.rebuild()
 
 # Gameplay
-endgame = ScreenState(gui_manager, event_handler)
+endgame = ScreenElements(gui_manager, event_handler)
 screens.append(endgame)
-endgame.newText(0, 0, 800, 400, "<font color='#FF0000'>YOU DIED</font>", 7)
-endgame.newButton(300, 500, 200, 50, "Return to Main Menu", "menustate", 0)
+endgame.newText(0, 150, 800, 100, "<font color='#FF0000'>YOU DIED</font>", 7)
+endgame.newButton(300, 500, 200, 50, "Return to Main Menu", "checkscore", 1)
 endgame.newTextVar(0, 400, 800, 100, "Score: ", "score", "", 6)
+
+# Highscore Entry
+enter_name = ScreenElements(gui_manager, event_handler)
+enter_name.highScoreTextEntry(200, 350, 400, 50, "Enter Name: ", 6)
+enter_name.newText(0, 250, 800, 50, "Top 10 Score!", 6)
+
 
 # Default Values
 event_handler.setValue("menustate", len(screens))
+event_handler.setValue("checkscore", 0)
 event_handler.setValue("gamestart", 0)
 event_handler.setValue("quitgame", 0)
 event_handler.setValue("width", 10)
@@ -257,6 +301,7 @@ event_handler.setValue("height", 20)
 event_handler.setValue("speed", 3)
 event_handler.setValue("ext_shapes", False)
 event_handler.setValue("AI_mode", False)
+event_handler.setValue("score_entry", False)
 
 # Run game
 clock = pygame.time.Clock()
@@ -318,6 +363,10 @@ while is_running:
                 pygame.mixer.music.play(-1)
         else:
             screens[i].hide()
+    if event_handler.getValue("score_entry"):
+        enter_name.show()
+    else:
+        enter_name.hide()
     event_handler.setAll()
     gui_manager.draw_ui(display)
     pygame.display.flip()
@@ -327,7 +376,19 @@ while is_running:
         event_handler.setValue("score", startGame(event_handler.getValue("width"), event_handler.getValue("height"), event_handler.getValue("ext_shapes"), 
                           event_handler.getValue("speed"), event_handler.getValue("AI_mode"), display, gui_manager, game_music, font_path))
         event_handler.setValue("menustate", 3)
+        if high_scores.scoreIsHigh(event_handler.getValue("score")) and not event_handler.getValue("AI_mode"):
+            event_handler.setValue("score_entry", True)
         gameover_sound.play()
+    if event_handler.getValue("checkscore") == 1:
+        event_handler.setValue("checkscore", 0)
+        if event_handler.getValue("AI_mode"):
+            high_scores.addScore("AI", event_handler.getValue("score"))
+        else:
+            high_scores.addScore(event_handler.getUser(), event_handler.getValue("score"))
+        event_handler.setValue("names", high_scores.getNames())
+        event_handler.setValue("scores", high_scores.getScores())
+        event_handler.setValue("score_entry", False)
+        event_handler.setValue("menustate", 0)
 
 high_scores.saveScores()
 pygame.quit()

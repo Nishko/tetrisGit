@@ -54,7 +54,8 @@ class GameClass:
     BoardWidth = 10
     BoardHeight = 20
     Score = 0
-    Speed = 1
+    LinesCleared = 0
+    Speed = 1.0
     fps = 0
     Extension = False
     CanSwapBlock = True
@@ -92,6 +93,7 @@ class GameClass:
             if full:  # remove row if it's completed
                 if addScore:
                     self.ClearedRows[j] = self.fps / 3
+                    self.LinesCleared += 1
                 rowsRemoved += 1
                 for v in range(j,0,-1):
                     for u in range(self.BoardWidth):
@@ -99,7 +101,9 @@ class GameClass:
         if addScore:
             self.Score += RowValues[rowsRemoved]
             if self.Speed < 5:
-                self.Speed += rowsRemoved / 20.0
+                self.Speed += rowsRemoved / 50.0
+        else:
+            return rowsRemoved
 
     def OutOfBounds(self, Shape, Pos):  # check if a given shape and position is an invalid space
         for i in range(len(Shape)):
@@ -457,6 +461,29 @@ def startGame(newWidth, newHeight, isExtension, newLevel, isAI, screen, manager,
                                                        BlockCords[1] * BlockWidth + HBy + 1,
                                                        BlockWidth - 2, BlockWidth - 2])
 
+        # Render Corner Text
+        CTFont = pygame.font.Font(font, 15)
+        CTLabel = CTFont.render("Group 50", 1, colour)
+        screen.blit(CTLabel, (width - CTLabel.get_size()[0], 0))
+        CTLabel = CTFont.render("Score: " + str(game.Score), 1, colour)
+        screen.blit(CTLabel, (0, 0))
+        CTLabel = CTFont.render("Lines Cleared: " + str(game.LinesCleared), 1, colour)
+        screen.blit(CTLabel, (0, 15))
+        CTLabel = CTFont.render("Speed: " + str(round(game.Speed * level,2)), 1, colour)
+        screen.blit(CTLabel, (0, 30))
+        if AIPlaying:
+            CTLabel = CTFont.render("Play mode: AI", 1, colour)
+            screen.blit(CTLabel, (0, 45))
+        else:
+            CTLabel = CTFont.render("Play mode: Human", 1, colour)
+            screen.blit(CTLabel, (0, 45))
+        if isExtension:
+            CTLabel = CTFont.render("Game mode: Extension", 1, colour)
+            screen.blit(CTLabel, (0, 60))
+        else:
+            CTLabel = CTFont.render("Game mode: Normal", 1, colour)
+            screen.blit(CTLabel, (0, 60))
+
         clock.tick(fps)
         pygame.display.flip()
     pygame.mixer.music.stop()
@@ -469,7 +496,7 @@ def fitnessRating(game, newShape, i):
     tempBoard = deepcopy(game.Board)
     for u in range(len(newShape)):
         tempBoard[i + newShape[u][0]][highestPos + newShape[u][1]] = 1
-    game.CheckForRows(tempBoard, False)
+    cleared = game.CheckForRows(tempBoard, False)
     # calculate fitness
     newFitness = 0
     lowestBlock = game.BoardHeight

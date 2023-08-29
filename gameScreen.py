@@ -273,6 +273,7 @@ def startGame(newWidth, newHeight, isExtension, newLevel, isAI, screen, manager,
     # Play Music
     pygame.mixer.music.load(music)
     pygame.mixer.music.play(-1)
+    mutemusic = False
 
     # Font Colour
     colour = pygame.Color("#ED9008")
@@ -324,6 +325,8 @@ def startGame(newWidth, newHeight, isExtension, newLevel, isAI, screen, manager,
                         right = True
                     if event.key == pygame.K_SPACE:
                         game.HoldBlock()
+                    if event.key == pygame.K_m:
+                        mutemusic = not mutemusic
                 elif event.type == pygame.KEYUP:
                     if event.key == pygame.K_DOWN:
                         DownFast = False
@@ -484,6 +487,12 @@ def startGame(newWidth, newHeight, isExtension, newLevel, isAI, screen, manager,
             CTLabel = CTFont.render("Game mode: Normal", 1, colour)
             screen.blit(CTLabel, (0, 60))
 
+        # Mute music
+        if mutemusic:
+            pygame.mixer.music.set_volume(0)
+        else:
+            pygame.mixer.music.set_volume(1)
+        
         clock.tick(fps)
         pygame.display.flip()
     pygame.mixer.music.stop()

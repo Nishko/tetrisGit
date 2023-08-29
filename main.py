@@ -303,6 +303,8 @@ enter_name = ScreenElements(gui_manager, event_handler)
 enter_name.highScoreTextEntry(200, 350, 400, 50, "Enter Name: ", 6)
 enter_name.newText(0, 250, 800, 50, "Top 10 Score!", 6)
 
+# Keyboard Inputs
+event_handler.newKeyDownToggle(pygame.K_m, "mutemusic")
 
 # Default Values
 event_handler.setValue("menustate", len(screens))
@@ -315,6 +317,7 @@ event_handler.setValue("speed", 3)
 event_handler.setValue("ext_shapes", False)
 event_handler.setValue("AI_mode", False)
 event_handler.setValue("score_entry", False)
+event_handler.setValue("mutemusic", False)
 
 # Run game
 clock = pygame.time.Clock()
@@ -357,32 +360,50 @@ startup_text.visible = False
 # Main Loop
 event_handler.setValue("menustate", 0)
 while is_running:
+    # Process events
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             is_running = False
         event_handler.runEvent(event)
 
     gui_manager.update(clock.tick(60) / 1000.0)
+
+    # Music
+    if event_handler.getValue("mutemusic"):
+        pygame.mixer.music.set_volume(0)
+    else:
+        pygame.mixer.music.set_volume(1)
+
+    # Quit game
     if event_handler.getValue("quitgame") == 1:
         is_running = False
+
+    # Hide and show screen elements
     current_screen = event_handler.getValue("menustate")
     if event_handler.getValue("gamestart") == 1:
         current_screen = len(screens)
     for i in range(len(screens)):
         if current_screen == i:
             screens[i].show()
+            # Restart music
             if i == 0 and not pygame.mixer.music.get_busy():
                 pygame.mixer.music.load(os.path.join(current_directory, 'assets/music.mp3'))
                 pygame.mixer.music.play(-1)
         else:
             screens[i].hide()
+
+    # Show text entry for high score
     if event_handler.getValue("score_entry"):
         enter_name.show()
     else:
         enter_name.hide()
+    
+    # Set screen elements and draw screen
     event_handler.setAll()
     gui_manager.draw_ui(display)
     pygame.display.flip()
+
+    # Play game
     if event_handler.getValue("gamestart") == 1:
         pygame.mixer.music.stop()
         event_handler.setValue("gamestart", 0)
@@ -392,6 +413,8 @@ while is_running:
         if high_scores.scoreIsHigh(event_handler.getValue("score")) and not event_handler.getValue("AI_mode"):
             event_handler.setValue("score_entry", True)
         gameover_sound.play()
+
+    # Handle score on game over
     if event_handler.getValue("checkscore") == 1:
         event_handler.setValue("checkscore", 0)
         if event_handler.getValue("AI_mode"):
@@ -403,5 +426,6 @@ while is_running:
         event_handler.setValue("score_entry", False)
         event_handler.setValue("menustate", 0)
 
+# Save scores from current session before quit    
 high_scores.saveScores()
 pygame.quit()

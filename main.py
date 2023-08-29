@@ -10,6 +10,7 @@ class EventHandler:
         self.toggleButtons = []
         self.sliders = []
         self.textVars = []
+        self.keyToggles = []
         self.user = None
         self.vars = {}
         self.button_sound = pygame.mixer.Sound(os.path.join(current_directory, 'assets/buttonsound.mp3'))
@@ -46,6 +47,12 @@ class EventHandler:
         curr_value = self.vars.get(varname)
         if curr_value is None:
             self.setValue(varname, "")
+
+    def newKeyDownToggle(self, keydown, varname):
+        self.keyToggles.append((keydown, varname))
+        curr_value = self.vars.get(varname)
+        if curr_value is None:
+            self.setValue(varname, True)
 
     def highScoreEntry(self, text_entry):
         self.user = text_entry
@@ -90,6 +97,11 @@ class EventHandler:
                     value = round(event.value / increment) * increment
                     if varname is not None:
                         self.setValue(varname, value)
+        elif event.type == pygame.KEYDOWN:
+            for keydown, varname in self.keyToggles:
+                if event.key == keydown:
+                    if varname is not None:
+                        self.vars[varname] = not self.vars[varname]
         gui_manager.process_events(event)
 
 

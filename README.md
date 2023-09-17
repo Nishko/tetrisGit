@@ -38,3 +38,28 @@ Run `main.py` to start the game:
 
 ```bash
 python main.py
+```
+
+## Code Description
+
+### Naming Convention
+
+The naming conventions of the code are; my_variable, myMethod, and MyClass.
+
+### Line Counts
+
+The line counts of the files are;
+main.py, 431 lines 
+gameScreen.py, 530 lines
+theme.json, 58 lines
+The total line count of all files are 1019 lines.
+
+### Source Code Description
+
+There are three code files of this project, theme.json, main.py, and gameScreen.py.
+
+theme.json contains the colours, fonts, and sizes of the gui in the game project.
+
+main.py runs the display and interactions of all the screens apart from the game screen and the pause screen. It also keeps track of high scores and game settings.
+
+gameScreen.py runs the display and interactions of the game screen and runs the logic behind the game of Tetris including both human playing mode and AI mode. It also runs the display and interactions of the pause screen.

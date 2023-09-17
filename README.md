@@ -48,11 +48,7 @@ The naming conventions of the code are; my_variable, myMethod, and MyClass.
 
 ### Line Counts
 
-The line counts of the files are;
-main.py, 431 lines 
-gameScreen.py, 530 lines
-theme.json, 58 lines
-The total line count of all files are 1019 lines.
+The line counts of the files are; main.py, 431 lines. gameScreen.py, 530 lines. theme.json, 58 lines. The total line count of all files are 1019 lines.
 
 ### Source Code Description
 

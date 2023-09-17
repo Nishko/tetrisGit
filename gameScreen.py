@@ -35,7 +35,7 @@ sizes = [
     [[(0,0),(0,1),(1,1)],[(0,0),(0,1),(-1,1)],
      [(0,1),(0,2),(-1,1)],[(0,1),(0,2),(1,1)]]  # corner shape
 ]
-row_values = [0,100,300,600,1000]
+row_values = [0,100,300,600,1000] # score earned per rows removed
 width = 800
 height = 600
 pygame.init()
@@ -83,7 +83,7 @@ class GameClass:
 
     def checkForRows(self, board, add_score):  # check each row if it's completed and if so remove it
         rows_removed = 0
-        for j in range(self.board_height):
+        for j in range(self.board_height): # check each row if its full and remove it
             full = True
             for i in range(self.board_width):
                 if board[i][j] == -1:
@@ -200,6 +200,7 @@ class GameClass:
                 self.block_Index = temp
 
 def pauseGame(display, gui_manager, score):
+    # create pause screen visuals
     gui_elements = []
     continue_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((150, 400), (200, 50)), 
             text="Continue", manager=gui_manager)
@@ -222,24 +223,25 @@ def pauseGame(display, gui_manager, score):
     while pause_screen_active:
         for event in pygame.event.get():
             if event.type == pygame_gui.UI_BUTTON_PRESSED:
-                if event.ui_element == continue_button:
+                if event.ui_element == continue_button: # go back to game screen
                     for element in gui_elements:
                         element.hide()
                     pause_screen_active = False
                     return False
-                if event.ui_element == quit_button:
+                if event.ui_element == quit_button: # quit to main menu
                     for element in gui_elements:
                         element.hide()
                     pause_screen_active = False
                     return True
                 
-            if event.type == pygame.QUIT:
+            if event.type == pygame.QUIT: # quit to main menu by X button
                 for element in gui_elements:
                     element.hide()
                 pause_screen_active = False
                 return True
             gui_manager.process_events(event)
 
+        # display graphics
         gui_manager.update(clock.tick(60) / 1000.0)
         display.fill((0, 0, 0))
         gui_manager.draw_ui(display)
@@ -335,15 +337,16 @@ def startGame(new_width, new_height, is_extension, new_level, AI_mode, display, 
                     if event.key == pygame.K_RIGHT:
                         right = False
         if AI_playing:  # AI logic
-            if target_position == -1:
+            if target_position == -1: # find the next move if there is no current move choosen
                 down_fast = False
                 best_fitness = -1000000
                 best_index = -1
                 best_rotation = -1
                 holding = False
 
+                # find the best move among all rotations and positions of current and held blocks
                 for i in range(game.board_width):
-                    for new_rotation in range(len(sizes[game.block_Index])):
+                    for new_rotation in range(len(sizes[game.block_Index])): # test all rotation for current block
                         new_shape = sizes[game.block_Index][new_rotation]
                         if game.outOfBounds(new_shape, [i,0]):
                             continue
@@ -358,7 +361,7 @@ def startGame(new_width, new_height, is_extension, new_level, AI_mode, display, 
                     held_ID = game.next_block
                     if game.held_block != -1:
                         held_ID = game.held_block
-                    for new_rotation in range(len(sizes[held_ID])):
+                    for new_rotation in range(len(sizes[held_ID])): # test all rotations for held block (or next block if no held is found)
                         new_shape = sizes[held_ID][new_rotation]
                         if game.outOfBounds(new_shape, [i, 0]):
                             continue
@@ -373,9 +376,9 @@ def startGame(new_width, new_height, is_extension, new_level, AI_mode, display, 
 
                 target_position = best_index
                 target_rotation = best_rotation
-                if holding:
+                if holding: # hold block if needed
                     game.holdBlock()
-            else:
+            else: # execute the current move
                 if game.block_position[0] < target_position:
                     left = False
                     right = True
@@ -497,11 +500,12 @@ def startGame(new_width, new_height, is_extension, new_level, AI_mode, display, 
         pygame.display.flip()
     pygame.mixer.music.stop()
 
-def fitnessRating(game, new_shape, i):
+def fitnessRating(game, new_shape, i): # calculate fitness (how good it is) of a given move
+    # find lowest place to put the new shape
     highest_position = 0
     while not game.outOfBounds(new_shape, [i, highest_position + 1]):
         highest_position += 1
-    # temp apply changes
+    # apply the move to a temp board
     temp_board = deepcopy(game.board)
     for u in range(len(new_shape)):
         temp_board[i + new_shape[u][0]][highest_position + new_shape[u][1]] = 1

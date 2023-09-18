@@ -24,7 +24,7 @@ width = 800
 height = 600
 game_object = None
 
-class GameClass:
+class _GameClass:
     # the block ID's
     block_Index = 0
     next_block = 0
@@ -184,5 +184,5 @@ class GameClass:
 
 def getGameObject(new_width, new_height, is_extension, fps):
     if game_object == None:
-        return GameClass(new_width, new_height, is_extension, fps)
+        return _GameClass(new_width, new_height, is_extension, fps)
     return game_object

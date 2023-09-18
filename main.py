@@ -87,21 +87,25 @@ class EventHandler:
                     if varname is not None:
                         self.vars[varname] = value
                         self.button_sound.play()
+                    continue
             for button, varname, _, _ in self.toggleButtons:
                 if event.ui_element == button:
                     if varname is not None:
                         self.vars[varname] = not self.vars[varname]
+                    continue
         elif event.type == pygame_gui.UI_HORIZONTAL_SLIDER_MOVED:
             for slider, varname, increment, text in self.sliders:
                 if event.ui_element == slider:
                     value = round(event.value / increment) * increment
                     if varname is not None:
                         self.setValue(varname, value)
+                    continue
         elif event.type == pygame.KEYDOWN:
             for keydown, varname in self.keyToggles:
                 if event.key == keydown:
                     if varname is not None:
                         self.vars[varname] = not self.vars[varname]
+                    continue
         gui_manager.process_events(event)
 
 

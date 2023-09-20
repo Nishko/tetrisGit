@@ -187,7 +187,7 @@ class ScreenElements:
         for object in self.focusobjects:
             object.unfocus()
 
-class highscores:
+class HighScores:
     def __init__(self, filename):
         self.filename = filename
         self.scores = []
@@ -251,7 +251,7 @@ gui_manager.preload_fonts(font_list)
 gui_manager.get_theme().load_theme(os.path.join(current_directory, 'assets/theme.json'))
 game_music = os.path.join(current_directory, 'assets/gamemusic.mp3')
 
-high_scores = highscores(os.path.join(current_directory, 'assets/scores.txt'))
+high_scores = HighScores(os.path.join(current_directory, 'assets/scores.txt'))
 event_handler.setValue("names", high_scores.getNames())
 event_handler.setValue("scores", high_scores.getScores())
 

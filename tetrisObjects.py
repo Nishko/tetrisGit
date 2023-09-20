@@ -183,6 +183,7 @@ class _GameClass:
                 self.block_Index = temp
 
 def getGameObject(new_width, new_height, is_extension, fps):
+    global game_object
     if game_object == None:
-        return _GameClass(new_width, new_height, is_extension, fps)
-    return game_object
+        game_object = _GameClass(new_width, new_height, is_extension, fps)
+    return _GameClass(new_width, new_height, is_extension, fps)

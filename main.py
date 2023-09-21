@@ -42,7 +42,7 @@ class EventHandler:
         if curr_value is None:
             self.setValue(varname, slider.get_current_value())
 
-    def newTextVar(self, textbox, pre_text, varname, post_text):
+    def newTextVar_(self, textbox, pre_text, varname, post_text):
         self.textVars.append((textbox, pre_text, varname, post_text))
         curr_value = self.vars.get(varname)
         if curr_value is None:
@@ -143,7 +143,7 @@ class ScreenElements:
             html_text=f"<font size={font_size}> </font>", manager=self.my_gui)
         new_text.visible = False
         self.objects.append(new_text)
-        self.my_events.newTextVar(new_text, pre_text, varname, post_text)
+        self.my_events.newTextVar_(new_text, pre_text, varname, post_text)
         return new_text
 
     def newSlider(self, x_pos, y_pos, x_dim, y_dim, min_val, max_val, inc_val, varname):

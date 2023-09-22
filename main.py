@@ -4,6 +4,7 @@ import pygame
 import pygame_gui
 from gameScreen import startGame
 
+# This class is an object that will process user events during gameplay. It hwill contain a complete list of ui objects.
 class EventHandler:
     def __init__(self):
         self.buttons = []
@@ -12,7 +13,7 @@ class EventHandler:
         self.textVars = []
         self.keyToggles = []
         self.user = None
-        self.vars = {}
+        self.vars = {}      # Dictionary that stores values various ui objects can alter.
         self.button_sound = pygame.mixer.Sound(os.path.join(current_directory, 'assets/buttonsound.mp3'))
 
     def setValue(self, varname, value):
@@ -24,6 +25,7 @@ class EventHandler:
     def getUser(self):
         return self.user.get_text()
 
+    # these functions are called by ScreenElements to add a reference to the ui object to the appropriate list.
     def newButtonEvent(self, button, varname, value):
         self.buttons.append((button, varname, value))
         curr_value = self.vars.get(varname)
@@ -47,7 +49,8 @@ class EventHandler:
         curr_value = self.vars.get(varname)
         if curr_value is None:
             self.setValue(varname, "")
-
+    
+    # Allows keys to be assigned to vars as a toggle.    
     def newKeyDownToggle(self, keydown, varname):
         self.keyToggles.append((keydown, varname))
         curr_value = self.vars.get(varname)
@@ -57,12 +60,14 @@ class EventHandler:
     def highScoreEntry(self, text_entry):
         self.user = text_entry
 
+    # Sets the slider position based on its current value. This makes it snap to whole numbers.
     def setSliders(self):
         for slider, varname, _, text in self.sliders:
             value = self.getValue(varname)
             slider.set_current_value(value)
             text.set_text(f"{value}")
 
+    # Sets toggle text to the right value. This makes the text on toggle buttons switch when pressed.
     def setToggles(self):
         for button, varname, true_text, false_text in self.toggleButtons:
             if self.getValue(varname):
@@ -70,6 +75,7 @@ class EventHandler:
             else:
                 button.set_text(false_text)
 
+    # Updates text displays of different variables to current value.
     def setTextVars(self):
         for textbox, pre_text, varname, post_text in self.textVars:
             value = self.getValue(varname)
@@ -80,6 +86,7 @@ class EventHandler:
         self.setToggles()
         self.setTextVars()
     
+    # Checks the event against list of objects stored in event handler. If a match is found, the appropriate action is taken.
     def runEvent(self, event):
         if event.type == pygame_gui.UI_BUTTON_PRESSED:
             for button, varname, value in self.buttons:
@@ -109,6 +116,9 @@ class EventHandler:
         gui_manager.process_events(event)
 
 
+# Class to manage gui objects. A new object is mane for each "screen", for example the main menu, or the config page. This allows elements to be created for
+# each screen and keeps them grouped. It also allows all of the gui elements to be easily hidden/shown when the screen should be changed.
+# The ScreenElements object requires the gui_manager and EventsManager to be passed as input arguments on creation, so that all the created elements can be appropriately managed
 class ScreenElements:
     def __init__(self, gui, events, colour=(0, 0, 0)):
         self.my_gui = gui
@@ -117,6 +127,7 @@ class ScreenElements:
         self.objects = []
         self.focusobjects = []
 
+    # The following functions all allow new gui elements to be added to this object.
     def newButton(self, x_pos, y_pos, x_dim, y_dim, text, varname, value):
         new_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((x_pos, y_pos), (x_dim, y_dim)), 
             text=text, manager=self.my_gui)
@@ -174,6 +185,7 @@ class ScreenElements:
         self.objects.append(link_text)
         self.my_events.highScoreEntry(new_entry)
 
+    # Show all gui elements tied to this object
     def show(self):
         display.fill(self.colour)
         for object in self.objects:
@@ -181,12 +193,15 @@ class ScreenElements:
         for object in self.focusobjects:
             object.focus()
         
+    # Hide all gui elements tied to this object
     def hide(self):
         for object in self.objects:
             object.hide()
         for object in self.focusobjects:
             object.unfocus()
 
+# Object used for managing the highscores. The object is initialized with a file name, that the scores are read from. 
+# Scores are updated within this object and stored to the text file they were initially loaded from on program termination.
 class HighScores:
     def __init__(self, filename):
         self.filename = filename
@@ -231,6 +246,7 @@ class HighScores:
         self.saveScores()
 
 
+# Initialize game. Reads current directory and creates objects required to manage gameplay.
 current_directory = os.path.dirname(__file__)
 pygame.init()
 pygame.mixer.init()
@@ -241,7 +257,7 @@ pygame.display.set_caption("Elden Blocks")
 # gui manager and event handler
 gui_manager = pygame_gui.UIManager((800, 600))
 event_handler = EventHandler()
-screens = []
+# Load fonts
 font_list = []
 font_path = os.path.join(current_directory, 'assets/Mantinia Regular.ttf')
 gui_manager.add_font_paths('Mantinia Regular', font_path)
@@ -249,12 +265,14 @@ for size in range(1, 49):
     font_list.append({'name': 'Mantinia Regular', 'point_size': size, 'style': 'regular'})
 gui_manager.preload_fonts(font_list)
 gui_manager.get_theme().load_theme(os.path.join(current_directory, 'assets/theme.json'))
+# Play music
 game_music = os.path.join(current_directory, 'assets/gamemusic.mp3')
-
+# Load scores
 high_scores = HighScores(os.path.join(current_directory, 'assets/scores.txt'))
 event_handler.setValue("names", high_scores.getNames())
 event_handler.setValue("scores", high_scores.getScores())
-
+# Define gui elements for each screen.
+screens = []
 # Main Menu
 main_menu = ScreenElements(gui_manager, event_handler)
 screens.append(main_menu)
@@ -310,7 +328,7 @@ enter_name.newText(0, 250, 800, 50, "Top 10 Score!", 6)
 # Keyboard Inputs
 event_handler.newKeyDownToggle(pygame.K_m, "mutemusic")
 
-# Default Values
+# Default Values for variables in EventsManager
 event_handler.setValue("menustate", len(screens))
 event_handler.setValue("checkscore", 0)
 event_handler.setValue("gamestart", 0)
@@ -331,15 +349,16 @@ is_running = True
 
 # Startup Sequence
 introskip = False
-if len(sys.argv) > 1:
+if len(sys.argv) > 1:       # skip intro with command line arg
     introskip = True
 start_time = pygame.time.get_ticks()
-for screen in screens:
+for screen in screens:      # hide all gui elements
         screen.hide()
 startup_text = pygame_gui.elements.UITextBox(relative_rect=pygame.Rect((0, 250), (800, 100)), 
     html_text=f"<font size={7}> </font>", manager=gui_manager)
-startup_time = 10000
+startup_time = 10000        
 startup_text_lines = []
+# Lines are read from the creators text file on game startup.
 with open(os.path.join(current_directory, 'assets/creators.txt'), "r") as file:
     for line in file:
         startup_text_lines.append(line)

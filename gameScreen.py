@@ -134,7 +134,7 @@ def startGame(new_width, new_height, is_extension, new_level, AI_mode, display, 
                 playing = False
             if event.type == pygame.KEYDOWN:  # pause game
                 if event.key == pygame.K_ESCAPE or event.key == pygame.K_p:
-                        if pauseGame(display, gui_manager, game.score) == True:
+                        if pauseGame(display, gui_manager, game.score) == True: # user requested to end game
                             pygame.mixer.music.stop()
                             return game.score
             if not AI_playing:
@@ -159,7 +159,7 @@ def startGame(new_width, new_height, is_extension, new_level, AI_mode, display, 
                     if event.key == pygame.K_RIGHT:
                         right = False
         if AI_playing:  # AI logic
-            if target_position == -1: # find the next move if there is no current move choosen
+            if target_position == -1: # move-finding phase
                 down_fast = False
                 best_fitness = -1000000
                 best_index = -1
@@ -200,11 +200,11 @@ def startGame(new_width, new_height, is_extension, new_level, AI_mode, display, 
                 target_rotation = best_rotation
                 if holding: # hold block if needed
                     game.holdBlock()
-            else: # execute the current move
-                if game.block_position[0] < target_position:
+            else: # execution phase
+                if game.block_position[0] < target_position: # move right
                     left = False
                     right = True
-                elif game.block_position[0] > target_position:
+                elif game.block_position[0] > target_position: # move left
                     left = True
                     right = False
                 else:
@@ -322,7 +322,7 @@ def startGame(new_width, new_height, is_extension, new_level, AI_mode, display, 
         pygame.display.flip()
     pygame.mixer.music.stop()
 
-def fitnessRating(game, new_shape, i): # calculate fitness (how good it is) of a given move
+def fitnessRating(game, new_shape, i): # fitness algorithm
     # find lowest place to put the new shape
     highest_position = 0
     while not game.outOfBounds(new_shape, [i, highest_position + 1]):
